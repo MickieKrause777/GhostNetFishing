@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css"/>
+    <title>Ghost Net Fishing</title>
+</h:head>
+<h:body>
+    <p><img id="kopf_links" src="logo.png" width="250" alt="Logo"/></p>
+    <p id="kopf_rechts">
+        <h:outputText value="#{anschrift.name}"/>
+        <br/>
+        <h:outputText value="#{anschrift.strasse} #{anschrift.hausnummer}"/>
+        <br/>
+        <h:outputText value="#{anschrift.plz} #{anschrift.ort}"/>
+    </p>
+    <h1>Netzverwaltung</h1>
+    <h2>Geisternetz erfassen</h2>
+    <h:form>
+
+        <p:messages id="msgs"/>
+
+        <p:panelGrid columns="3">
+
+            <p:outputLabel value="Standort (in Dezimalgrad):"/>
+            <h:outputText value=" "/>
+            <p/>
+
+            <p:outputLabel value="Längengrad:" for="laengengrad"/>
+            <p:inputNumber id="laengengrad" value="#{netzController.neuesGeisternetz.laengengrad}" decimalPlaces="6" required="true">
+                <f:validateDoubleRange minimum="-175" maximum="175"/>
+                <p:ajax update="msgLaengengrad" event="keyup"/>
+            </p:inputNumber>
+            <p:message for="laengengrad" id="msgLaengengrad"/>
+
+            <p:outputLabel value="Breitengrad:" for="breitengrad"/>
+            <p:inputNumber id="breitengrad" value="#{netzController.neuesGeisternetz.breitengrad}" decimalPlaces="6" required="true">
+                <f:validateDoubleRange minimum="-85" maximum="85"/>
+                <p:ajax update="msgBreitengrad" event="keyup"/>
+            </p:inputNumber>
+            <p:message for="breitengrad" id="msgBreitengrad"/>
+
+            <p:outputLabel value="Größe (in Meter):" for="groeße"/>
+            <p:tab>
+                <p:inputText id="groeße" value="#{netzController.neuesGeisternetz.groeße}" size="40" required="true">
+                    <f:validateLongRange minimum="1" maximum="100"/>
+                    <p:ajax update="msgGroeße" event="keyup"/>
+                </p:inputText>
+                <p:slider for="groeße" range="false" value="#{netzController.neuesGeisternetz.groeße}" step="1" minValue="1" maxValue="100"/>
+            </p:tab>
+            <p:message for="groeße" id="msgGroeße"/>
+
+            <p:outputLabel value="Vorname:" for="vorname"/>
+            <p:inputText id="vorname" value="#{netzController.neuePerson.vorname}" size="40" required="true" label="Vorname">
+                <f:validateLength minimum="2"/>
+                <p:ajax update="msgVorname" event="keyup"/>
+            </p:inputText>
+            <p:message for="vorname" id="msgVorname"/>
+
+            <p:outputLabel value="Nachname:" for="nachname"/>
+            <p:inputText id="nachname" value="#{netzController.neuePerson.nachname}" size="40" required="true">
+                <f:validateLength minimum="2"/>
+                <p:ajax update="msgNachname" event="keyup"/>
+            </p:inputText>
+            <p:message for="nachname" id="msgNachname"/>
+
+            <p:outputLabel value="Telefonummer:" for="telefonnummer"/>
+            <p:inputText id="telefonnummer" value="#{netzController.neuePerson.telefonnummer}" size="40" validatorMessage="Format: '0' + Ländercode + Rufnummer; maximal 15 Stellen">
+                <f:validateRegex pattern="0+[0-9]{1,14}"/>
+                <p:ajax update="msgTelefonnummer" event="keyup"/>
+            </p:inputText>
+            <p:message for="telefonnummer" id="msgTelefonnummer"/>
+
+            <p>Mit * markierte Felder bitte ausfüllen!</p>
+            <p:commandButton type="submit" update="@form" value="Geisternetz eintragen" styleClass="rounded-button" action="#{netzController.speichern()}" icon="pi pi-check"/>
+        </p:panelGrid>
+    </h:form>
+    <h:form>
+        <p:commandButton value="Zurück zur Übersicht" action="#{netzController.abbrechen()}" icon="pi pi-times" styleClass="ui-button-danger"/>
+    </h:form>
+</h:body>
+</html>

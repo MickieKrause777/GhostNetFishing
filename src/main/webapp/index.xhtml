@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+  <link rel="stylesheet" type="text/css" media="screen" href="style.css"/>
+  <title>Ghost Net Fishing</title>
+</h:head>
+<h:body>
+  <p><img id="kopf_links" src="logo.png" width="250" alt="Logo"/></p>
+  <p id="kopf_rechts">
+    <h:outputText value="#{anschrift.name}"/>
+    <br/>
+    <h:outputText value="#{anschrift.strasse} #{anschrift.hausnummer}"/>
+    <br/>
+    <h:outputText value="#{anschrift.plz} #{anschrift.ort}"/>
+  </p>
+  <h1>Netzverwaltung</h1>
+  <h2>Geisternetz erfassen</h2>
+
+<h:form>
+  <p:commandButton id="neuesGeisternetz" value="Geisternetz hinzufügen" styleClass="rounded-button" action="#{netzController.add()}" icon="pi pi-pencil"/>
+  <p:commandButton value="Weltkarte anzeigen" styleClass="rounded-button" action="#{mapController.map()}" icon="pi pi-map"/>
+</h:form>
+
+  <h:form id="form">
+    <p:dataTable id="dt-Geisternetze" value="#{netzliste.liste}" var="geisternetz" widgetVar="dtGeisternetze" rowKey="#{netzliste.liste}"
+                 paginator="true" paginatorPosition="both"
+                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                 currentPageReportTemplate="{startRecord}-{endRecord} von {totalRecords} Geisternetzen">
+
+      <f:facet name="header">
+        Vorhandene Geisternetze
+      </f:facet>
+
+      <p:column>
+        <f:facet name="header">Breitengrad</f:facet>
+        <h:outputText value="#{geisternetz.breitengrad}"/>
+      </p:column>
+
+      <p:column>
+        <f:facet name="header">Längengrad</f:facet>
+        <h:outputText value="#{geisternetz.laengengrad}"/>
+      </p:column>
+
+      <p:column>
+        <f:facet name="header">Größe</f:facet>
+        <h:outputText value="#{geisternetz.groeße} Meter"/>
+      </p:column>
+
+      <p:column field="status" headerText="Status" filterMatchMode="exact">
+        <f:facet name="filter">
+        <p:selectOneMenu onchange="PF('dtGeisternetze').filter()" styleClass="ui-custom-filter">
+          <f:selectItem itemLabel="All" itemValue="#{null}" noSelectionOption="true" />
+          <f:selectItems value="#{netzliste.statusListe}"/>
+        </p:selectOneMenu>
+        </f:facet>
+        <h:outputText value="#{geisternetz.status}"/>
+      </p:column>
+
+      <p:column>
+        <p:commandButton icon="pi pi-lock-open" update=":dialog:manage-bergung"
+                         oncomplete="PF('aendereStatusZuBergungBevorstehend').show()"
+                         styleClass="edit-button rounded-button ui-button-success" process="@this" rendered="#{geisternetz.status eq 'Gemeldet'}">
+          <f:setPropertyActionListener value="#{geisternetz}" target="#{netzController.geisternetz}" />
+          <p:resetInput target=":dialog:manage-bergung"/>
+        </p:commandButton>
+        <p:commandButton icon="pi pi-lock" styleClass="edit-button rounded-button ui-button-danger" disabled="true"
+                         rendered="#{geisternetz.status eq 'Bergung bevorstehend' or 'Geborgen' or 'Verschollen' }"/>
+        <p:commandButton icon="pi pi-check-circle" update=":dialog:manage-geborgen"
+                         oncomplete="PF('aendereStatusZuGeborgen').show()"
+                         styleClass="edit-button rounded-button ui-button-success" process="@this" rendered="#{geisternetz.status eq 'Bergung bevorstehend'}">
+          <f:setPropertyActionListener value="#{geisternetz}" target="#{netzController.geisternetz}" />
+          <p:resetInput target=":dialog:manage-geborgen"/>
+        </p:commandButton>
+      </p:column>
+
+      <f:facet name="footer">
+        <div>
+          <p:commandButton icon="pi pi-lock-open" styleClass="edit-button rounded-button ui-button-success" disabled="true"/>
+          <h:outputText value="= Bergung anmelden"/>
+        </div>
+        <div>
+          <p:commandButton icon="pi pi-lock" styleClass="edit-button rounded-button ui-button-danger" disabled="true"/>
+          <h:outputText value="= Geisternetz wird aktuell geborgen"/>
+        </div>
+        <div>
+          <p:commandButton icon="pi pi-check-circle" styleClass="edit-button rounded-button ui-button-success" disabled="true"/>
+          <h:outputText value="= Geisternetz als geborgen melden"/>
+        </div>
+      </f:facet>
+    </p:dataTable>
+  </h:form>
+
+
+  <h:form id="dialog">
+    <p:dialog header="Bergung" showEffect="fade" modal="true" widgetVar="aendereStatusZuBergungBevorstehend" responsive="true">
+        <p:outputPanel id="manage-bergung">
+          <p:panelGrid columns="3">
+            <p:outputLabel value="Vorname:" for="vorname"/>
+            <p:inputText id="vorname" value="#{netzController.neuePerson.vorname}" size="20" required="true" label="Vorname">
+              <f:validateLength minimum="2"/>
+              <p:ajax update="msgVorname" event="keyup"/>
+            </p:inputText>
+            <p:message for="vorname" id="msgVorname"/>
+
+            <p:outputLabel value="Nachname:" for="nachname"/>
+            <p:inputText id="nachname" value="#{netzController.neuePerson.nachname}" size="20" required="true">
+              <f:validateLength minimum="2"/>
+              <p:ajax update="msgNachname" event="keyup"/>
+            </p:inputText>
+            <p:message for="nachname" id="msgNachname"/>
+
+            <p:outputLabel value="Telefonummer:" for="telefonnummer"/>
+            <p:inputText id="telefonnummer" value="#{netzController.neuePerson.telefonnummer}" size="20" validatorMessage="'+' + Ländercode + Rufnummer" required="true">
+              <f:validateRegex pattern="0+[0-9]{1,14}"/>
+              <f:validateLength maximum="15"/>
+              <p:ajax update="msgTelefonnummer" event="keyup"/>
+            </p:inputText>
+            <p:message for="telefonnummer" id="msgTelefonnummer"/>
+          </p:panelGrid>
+        </p:outputPanel>
+
+        <f:facet name="footer">
+          <p:commandButton value="Bergung ankündigen" icon="pi pi-check" type="submit" actionListener="#{netzController.announceBergung()}" process="manage-bergung @this" update="manage-bergung"/>
+          <p:commandButton value="Abbrechen" icon="pi pi-times" onclick="PF('aendereStatusZuBergungBevorstehend').hide()"
+                           class="ui-button-secondary" type="button" />
+        </f:facet>
+    </p:dialog>
+
+    <p:dialog header="Geisternetz als geborgen melden" showEffect="fade" modal="true" widgetVar="aendereStatusZuGeborgen" responsive="true">
+      <p:outputPanel id="manage-geborgen">
+        <p:panelGrid columns="3">
+          <p:outputLabel value="Vorname:" for="vornameGe"/>
+          <p:inputText id="vornameGe" value="#{netzController.neuePerson.vorname}" size="20" required="true">
+            <f:validateLength minimum="2"/>
+            <p:ajax update="msgVornameGe" event="keyup"/>
+          </p:inputText>
+          <p:message for="vornameGe" id="msgVornameGe"/>
+
+          <p:outputLabel value="Nachname:" for="nachnameGe"/>
+          <p:inputText id="nachnameGe" value="#{netzController.neuePerson.nachname}" size="20" required="true">
+            <f:validateLength minimum="2"/>
+            <p:ajax update="msgNachnameGe" event="keyup"/>
+          </p:inputText>
+          <p:message for="nachnameGe" id="msgNachnameGe"/>
+
+          <p:outputLabel value="Telefonummer:" for="telefonnummerGe"/>
+          <p:inputText id="telefonnummerGe" value="#{netzController.neuePerson.telefonnummer}" size="20" validatorMessage="'+' + Ländercode + Rufnummer" required="true">
+            <f:validateRegex pattern="0+[0-9]{1,14}"/>
+            <f:validateLength maximum="15"/>
+            <p:ajax update="msgTelefonnummerGe" event="keyup"/>
+          </p:inputText>
+          <p:message for="telefonnummerGe" id="msgTelefonnummerGe"/>
+        </p:panelGrid>
+      </p:outputPanel>
+
+      <p:messages id="fehler" showDetail="true"/>
+
+      <f:facet name="footer">
+        <p:commandButton value="Geisternetz als geborgen melden" icon="pi pi-check" type="submit" actionListener="#{netzController.announceGeborgen()}" process="manage-geborgen @this" update="manage-geborgen fehler"/>
+        <p:commandButton value="Abbrechen" icon="pi pi-times" onclick="PF('aendereStatusZuGeborgen').hide()"
+                         class="ui-button-secondary" type="button" />
+      </f:facet>
+    </p:dialog>
+  </h:form>
+  <script
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDX2-cuScj1d7qtVM-eIlxtMRAPRMk4tZk">
+  </script>
+</h:body>
+</html>
